@@ -28,8 +28,9 @@ Functions:
     void Write(const char *rs232data);
     void WriteNumber(const char *rs232data, long int number, unsigned char base, bool NewLine);
 
-Memory advantage example:
-Arduino Serial class usage;
+## Memory advantage example:
+
+# Arduino Serial class usage;
 ```cpp
 unsigned long PrevMs;
 
@@ -56,7 +57,7 @@ void loop()
 }
 ```
 Will have 1889 bytes (92%) of flash and 75 bytes (58%) of RAM of a Attiny 202
-MegaTinyUtils Serial class usage;
+# MegaTinyUtils Serial class usage;
 ```cpp
 #include <MegaTinyUtils.h>
 
@@ -87,7 +88,9 @@ void loop()
 ```
 Will have 950 bytes (46%) of flash and 20 bytes (15%) of RAM of a Attiny 202
 
-### automatic switcher between UPDI and serial terminal circuit
+### automatic switcher between UPDI programming and serial terminal circuit
 ![image](SerialSwitcher.jpg) "automatic switcher between UPDI and serial terminal"
 
-This circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino 
+This circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
+Now uploading and tracing the RS232 output is just working as with other Arduino boards
+
