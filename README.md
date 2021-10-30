@@ -88,6 +88,53 @@ void loop()
 ```
 Will have 950 bytes (46%) of flash and 20 bytes (15%) of RAM of a Attiny 202
 
+## Simple methods to handle sleeping of the device
+
+```cpp
+#include <MegaTinyUtils.h>
+
+MegaTinyUtils Utils;
+
+#define TX_PIN PIN_PB2
+ 
+void setup() 
+{
+  Utils.SerialBegin(TX_PIN,115200); // Init the serial port
+  Utils.Delay(300);                 // Blocking start-delay
+  Utils.Write("Starting\n");        // Serial write
+  Utils.SleepInit(RTC_SECONDS_1);   // Base RTC time
+}
+
+void loop() 
+{
+  static int counter = 0;
+  Utils.WriteNumber("counter = ",counter++,10,NEWLINE);
+  Utils.Delay(5);                   // time the output the chars
+  Utils.GoToSleep(4);               // Sleep for 4 times the base time
+}
+```
+With SleepInit the base RTC timing is set. These can have this timing settings:
+```cpp
+typedef enum RTC_TIME_enum
+{
+    RTC_MSEC_4     = 0,
+    RTC_MSEC_8     = 1,
+    RTC_MSEC_16    = 2,
+    RTC_MSEC_31    = 3,
+    RTC_MSEC_62    = 4,
+    RTC_MSEC_125   = 5,
+    RTC_MSEC_250   = 6,
+    RTC_MSEC_500   = 7,
+    RTC_SECONDS_1  = 8,
+    RTC_SECONDS_2  = 9,
+    RTC_SECONDS_4  = 10,
+    RTC_SECONDS_8  = 11,
+    RTC_SECONDS_16 = 12,
+    RTC_SECONDS_32 = 13
+} RTC_TIME_t;
+```
+The GoToSleep(x) function will sleep for x * Base timing, so in the example this is 4 seconds sleep.
+
 ### automatic switcher between UPDI programming and serial terminal circuit
 ![image](SerialSwitcher.jpg) "automatic switcher between UPDI and serial terminal"
 
