@@ -4,6 +4,7 @@
   - blocking and non blocking delay functions
   - sleep functionality
   - Bit bang wire (I2C) routine
+  - Read Vdd voltage (battery)
 
   Works with this MegaTiny library:
     https://github.com/SpenceKonde/megaTinyCore
@@ -41,6 +42,9 @@ bool DelayNonBlock(unsigned int delayVal);
  void StopWireBb();
  bool WriteWire(unsigned char data);  
  unsigned char ReadWire(bool Ack);
+ 
+ // Read Vdd
+ unsigned char ReadVdd(void);
 ```
 
 ## Memory advantage example:
@@ -212,6 +216,29 @@ uint8_t* WireRead(short address, short length)
   _buffer[i] = Utils.ReadWire(READ_NACK); // Last byte give a NACK
   Utils.StopWireBb();
   return _buffer;
+}
+```
+## Read the Vdd voltage (battery)
+```cpp
+#include <MegaTinyUtils.h>
+
+MegaTinyUtils Utils;
+
+#define TX_PIN PIN_PB2
+
+void setup() 
+{
+  Utils.SerialBegin(TX_PIN,115200); // Init the serial port
+  Utils.Delay(300);                 // Blocking start-delay
+  byte Vdd = Utils.ReadVdd();       // Read the Vdd of the part
+
+  Utils.WriteNumber("Vdd = ",Vdd/10,10,NO_NEWLINE);
+  Utils.WriteNumber(".",Vdd%10,10,NO_NEWLINE);  
+  Utils.Write(" Volt\n");
+}
+
+void loop() 
+{
 }
 ```
 
