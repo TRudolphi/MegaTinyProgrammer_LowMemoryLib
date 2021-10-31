@@ -3,12 +3,15 @@
   - serial port writing and reading
   - blocking and non blocking delay functions
   - sleep functionality
-  - Wire bit bang
+  - Bit bang wire (I2C) routine
 
   Works with this MegaTiny library:
     https://github.com/SpenceKonde/megaTinyCore
 
 The MegaTinyUtils is only working with the Attiny processors mentioned by the library above.
+
+I made this library for my own projects, but thougth it could be helpfull for others also.
+Some parts of the code I found on the internet, but reworked it to fit this library.
 
 In most projects we want todo some logging via the serial port, but when using the Arduino Serial class,
 this will takes a lot of memory (near 2KByte flash!). 
