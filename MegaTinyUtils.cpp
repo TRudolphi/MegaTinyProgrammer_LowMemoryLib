@@ -12,7 +12,6 @@
   Created by Thomas Rudolphi, October, 2021.
   Released into the public domain.
 */
-//#include "Arduino.h"
 #include "MegaTinyUtils.h"
 
 // Wake up routine
