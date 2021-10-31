@@ -4,6 +4,9 @@
   - serial port writing and reading
   - blockin and non blocking delay functions
   - sleep functionality 
+  - Bit bang wire (I2C) routine
+  - Read Vdd voltage (battery)
+  
   Works with this MegaTiny library:
     https://github.com/SpenceKonde/megaTinyCore
   Created by Thomas Rudolphi, October, 2021.
@@ -132,4 +135,123 @@ void MegaTinyUtils::WriteNumber(const char *rs232data, long int number, unsigned
   Write(rs232data);
   Write(number_buffer);
   if(NewLine) Putchar('\n');
+}
+
+void MegaTinyUtils::DelI2C(void)
+{ 
+  delayMicroseconds(I2C_DELAY);  
+}
+
+void MegaTinyUtils::SetupWireBb() 
+{
+  digitalWriteFast(SCL_PIN,1);
+  digitalWriteFast(SDA_PIN,1);
+  pinMode(SDA_PIN,INPUT_PULLUP);
+  pinMode(SCL_PIN,OUTPUT);
+} 
+
+void MegaTinyUtils::StartWireBb() 
+{
+  Start();
+} 
+
+void MegaTinyUtils::StopWireBb() 
+{
+  Stop();
+} 
+
+bool MegaTinyUtils::WriteWire(unsigned char data) 
+{ 
+  bool Ack = false;
+  noInterrupts();
+  pinMode(SDA_PIN,OUTPUT);
+  for (byte i = 0; i < 7; i++) 
+  {
+    if (data & 0x80) {digitalWriteFast(SDA_PIN,1);}
+    else             {digitalWriteFast(SDA_PIN,0);}
+    data <<= 1;
+    WriteClockCycle();
+  }
+  if (data & 0x80)
+  {
+    digitalWriteFast(SDA_PIN,1);
+    pinMode(SDA_PIN,INPUT_PULLUP);// to avoid a short (master sends a 1, but after a falling edge, slave gives an ack)  
+    ClockHigh()
+    ClockLow()
+  }
+  else
+  {
+    digitalWriteFast(SDA_PIN,0);
+    WriteClockCycle();
+    pinMode(SDA_PIN,INPUT_PULLUP);// INPUT_PULLUP cannot only be done at a slow way  
+  }
+
+  ClockHighNoDelay();
+  if (digitalReadFast(SDA_PIN) == 0)
+  {
+    Ack = true;
+  } 
+  DelI2C();
+  ClockLowNoDelay();
+  interrupts();
+  return Ack;
+}
+
+unsigned char MegaTinyUtils::ReadWire(bool Ack) 
+{ 
+  byte dat  = 0;
+  byte Mask = 0x80;
+  noInterrupts();
+  while(Mask)
+  {
+    DelI2C();
+    ClockHighNoDelay();
+    if (digitalReadFast(SDA_PIN) != 0)
+    {
+      dat |= Mask;
+    }
+    DelI2C();
+    ClockLowNoDelay();
+    Mask >>= 1;
+  }
+  if(Ack)
+  {
+    pinMode(SDA_PIN,OUTPUT);
+    digitalWriteFast(SDA_PIN,0);
+    WriteClockCycle();
+    pinMode(SDA_PIN,INPUT_PULLUP);
+  }
+  else
+  {
+    WriteClockCycle();
+  }
+  interrupts();
+  return dat;
+}
+
+unsigned char MegaTinyUtils::ReadVdd(void) // Returns actual value of the Vdd (x 10)
+{   
+#if MEGATINYCORE_SERIES!=2
+  analogReference(VDD);
+  VREF.CTRLA = VREF_ADC0REFSEL_1V5_gc;
+  // there is a settling time between when reference is turned on, and when it becomes valid.
+  // since the reference is normally turned on only when it is requested, this virtually guarantees
+  // that the first reading will be garbage; subsequent readings taken immediately after will be fine.
+  // VREF.CTRLB|=VREF_ADC0REFEN_bm;
+  uint16_t reading = analogRead(ADC_INTREF);//discard first measurement
+  reading = analogRead(ADC_INTREF);
+  uint32_t intermediate = 1023UL * 1500;
+  reading = intermediate / reading;
+  return reading / 100;
+#else
+  analogReference(INTERNAL1V024);
+  analogReadEnh(ADC_VDDDIV10, 12); //discard first measurement
+  int32_t vddmeasure = analogReadEnh(ADC_VDDDIV10, 12); // 12 bits
+  int16_t returnval = vddmeasure >> 2; //divide by 4 to get millivolts.
+  if (vddmeasure & 0x02) {
+    //if last two digits were 0b11 or 0b10 we should round up
+    returnval++;
+  }
+  return returnval;
+#endif
 }
