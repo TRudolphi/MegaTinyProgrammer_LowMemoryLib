@@ -14,19 +14,30 @@ this will takes a lot of memory (near 2KByte flash!).
 With this library this is less than 1kByte. So even with models with only 2Kb of code flash, the rs232 can be used.
 
 Functions:
+```cpp
+// Delay
+void Delay(unsigned int delayVal);
+bool DelayNonBlock(unsigned int delayVal);
+    
+ // Sleep
+ void SleepInit(RTC_TIME_t RTC_time);
+ void GoToSleep(unsigned char times);
+    
+ // Serial
+ void SerialBegin(unsigned char TxPin, long baudrate);
+ bool Available(void);
+ unsigned char Getchar(void);
+ void Putchar(char data);
+ void Write(const char *rs232data);
+ void WriteNumber(const char *rs232data, long int number, unsigned char base, bool NewLine);
 
-    void Delay(unsigned int delayVal);
-    bool DelayNonBlock(unsigned int delayVal);
-    
-    void SleepInit(RTC_TIME_t RTC_time);
-    void GoToSleep(unsigned char times);
-    
-    void SerialBegin(unsigned char TxPin, long baudrate);
-    bool Available(void);
-    unsigned char Getchar(void);
-    void Putchar(char data);
-    void Write(const char *rs232data);
-    void WriteNumber(const char *rs232data, long int number, unsigned char base, bool NewLine);
+ // Wire BitBang
+ void SetupWireBb();
+ void StartWireBb();
+ void StopWireBb();
+ bool WriteWire(unsigned char data);  
+ unsigned char ReadWire(bool Ack);
+```
 
 ## Memory advantage example:
 
@@ -110,7 +121,7 @@ void loop()
   static int counter = 0;
   Utils.WriteNumber("counter = ",counter++,10,NEWLINE);
   Utils.Delay(5);                   // time the output the chars
-  Utils.GoToSleep(4);               // Sleep for 4 times the base time
+  Utils.GoToSleep(3);               // Sleep for 3 times the base time
 }
 ```
 With SleepInit the base RTC timing is set. These can have this timing settings:
