@@ -3,15 +3,16 @@
   - serial port writing and reading
   - blocking and non blocking delay functions
   - sleep functionality
+  - Wire bit bang
 
   Works with this MegaTiny library:
     https://github.com/SpenceKonde/megaTinyCore
 
-The MegaTinyUtils is only working with the Attiny models mentioned by the library above.
+The MegaTinyUtils is only working with the Attiny processors mentioned by the library above.
 
 In most projects we want todo some logging via the serial port, but when using the Arduino Serial class,
 this will takes a lot of memory (near 2KByte flash!). 
-With this library this is less than 1kByte. So even with models with only 2Kb of code flash, the rs232 can be used.
+With this library this is less than 1kByte. So even with models with only 2Kb of code flash, logging can be used.
 
 Functions:
 ```cpp
@@ -144,7 +145,10 @@ typedef enum RTC_TIME_enum
     RTC_SECONDS_32 = 13
 } RTC_TIME_t;
 ```
-The GoToSleep(x) function will sleep for x * Base timing, so in the example this is 4 seconds sleep.
+The GoToSleep(x) function will sleep for x * Base timing, so in the example this is 3 seconds sleep.
+
+## Bitbang I2C (Wire) routine possible on almost every pin
+
 
 ### automatic switcher between UPDI programming and serial terminal circuit
 ![image](SerialSwitcher.jpg) "automatic switcher between UPDI and serial terminal"
