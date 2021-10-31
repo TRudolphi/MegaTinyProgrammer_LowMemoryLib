@@ -14,11 +14,7 @@ The MegaTinyUtils is only working with the Attiny processors mentioned by the li
 I made this library for my own projects, but thougth it could be helpfull for others also.
 Some parts of the code I found on the internet, but reworked it to fit this library.
 
-In most projects we want todo some logging via the serial port, but when using the Arduino Serial class,
-this will takes a lot of memory (near 2KByte flash!). 
-With this library this is less than 1kByte. So even with models with only 2Kb of code flash, logging can be used.
-
-Functions:
+Internal functions:
 ```cpp
 // Delay
 void Delay(unsigned int delayVal);
@@ -49,7 +45,11 @@ bool DelayNonBlock(unsigned int delayVal);
 
 ## Memory advantage example:
 
-# Arduino Serial class usage;
+In most projects we want todo some logging via the serial port, but when using the Arduino Serial class,
+this will takes a lot of memory (near 2KByte flash!). 
+With this library this is less than 1kByte. So even with models with only 2Kb of code flash, logging can be used.
+
+### Arduino Serial class usage;
 ```cpp
 unsigned long PrevMs;
 
@@ -76,7 +76,7 @@ void loop()
 }
 ```
 Will have 1889 bytes (92%) of flash and 75 bytes (58%) of RAM of a Attiny 202
-# MegaTinyUtils Serial class usage;
+### MegaTinyUtils Serial class usage;
 ```cpp
 #include <MegaTinyUtils.h>
 
@@ -242,7 +242,7 @@ void loop()
 }
 ```
 
-### Automatic switcher between UPDI programming and serial terminal circuit
+# Automatic switcher between UPDI programming and serial terminal circuit
 ![image](SerialSwitcher.jpg) "automatic switcher between UPDI and serial terminal"
 
 This circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
