@@ -248,3 +248,16 @@ void loop()
 This circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
 Now uploading and tracing the RS232 output is just working as with other Arduino boards
 
+# Reset circuit when using the bootloader
+![image](PowerReset.jpg) "Reset circuit when using the bootlader"
+
+When a bootloader is present in the controller (via Burn Bootloader), you need to reset the controller
+before flashing a new sketch in it. We want to have the UPDI programfunctionality on the reset-pin,
+and also want to keep all I/O-pins for other purposes than having a software-reset-function.
+
+To reset the controller, it is also possible to remove the supply voltage for a short while.
+The DTR pin is going just before programming from VDD to 0 Volt, via C1, Q1 is not conducting
+for a short while. In this short time also Q2 is not conducting, so the VDD for the target is removed.
+R5 is present to have a low resitant pull down path, so the target is not fed by the TX pin.
+
+With this circuit, all will work as with an ordinary arduino board.
