@@ -2,6 +2,8 @@
 
 ![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
 
+The header-pinning is based on the very common USB-FTDI-RS232 interface.
+
 With the jumper JP1 two ways of controller flashing can be choosen:
 
 ### 1-2 => UPDI programming / serial terminal
