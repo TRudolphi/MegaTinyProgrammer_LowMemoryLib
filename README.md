@@ -1,4 +1,4 @@
-# Programming circuit for UPDI or with internal bootloaderand serial terminal
+# Programming circuit for UPDI or with internal bootloader and serial terminal
 
 ![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
 
