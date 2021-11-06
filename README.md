@@ -1,4 +1,4 @@
-# Programming circuit for UPDI or with internal bootloader and serial terminal
+# Circuit for programming / serial tracing an Attiny with UDPI-pin
 
 ![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
 
@@ -6,7 +6,7 @@ With the jumper JP1 two ways of controller flashing can be choosen:
 
 ### 1-2 => UPDI programming / serial terminal
 
-In this mode the circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
+In this mode the circuit automaticly switches between an UDPI sketch upload and serial monitoring in Arduino
 
 ### 2-3 => Flashing with an internal bootloader / serial terminal
 When a bootloader is present in the controller (via Burn Bootloader), you need to reset the controller
@@ -31,7 +31,7 @@ so it all works just as with an ordinary arduino board.
   - Bit bang wire (I2C) routine
   - Read Vdd voltage (battery)
 
-  Works with this MegaTiny library:
+  Works with this excellent MegaTiny board library:
     https://github.com/SpenceKonde/megaTinyCore
 
 The MegaTinyUtils is only working with the Attiny processors mentioned by the library above.
@@ -70,9 +70,9 @@ bool DelayNonBlock(unsigned int delayVal);
 
 ## Memory advantage example:
 
-In most projects we want todo some logging via the serial port, but when using the Arduino Serial class,
-this will takes a lot of memory (near 2KByte flash!). 
-With this library this is less than 1kByte. So even with models with only 2Kb of code flash, logging can be used.
+In most projects we want todo some tracing via the serial port, but when using the Arduino Serial class,
+this will take a lot of memory (near 2KByte flash!). 
+With this library this is less than 1kByte. So even with models with only 2Kb of code flash, tracing can be used.
 
 ### Arduino Serial class usage;
 ```cpp
