@@ -242,22 +242,27 @@ void loop()
 }
 ```
 
-# Automatic switcher between UPDI programming and serial terminal circuit
-![image](SerialSwitcher.jpg) "automatic switcher between UPDI and serial terminal"
+# Programming circuit for UPDI or with bootloader and serial terminal
+![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
 
-This circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
-Now uploading and tracing the RS232 output is just working as with other Arduino boards
+With the jumper JP1 two ways of controller flashing can be choosen:
 
-# Reset circuit when using the bootloader
-![image](PowerReset.jpg) "Reset circuit when using the bootlader"
+### 1-2 => UPDI programming / serial terminal
 
+In this mode the circuit automaticly switches between an UDPI firmware upload and serial monitoring in Arduino
+
+### 2-3 => Flashing with an internal bootloader / serial terminal
 When a bootloader is present in the controller (via Burn Bootloader), you need to reset the controller
-before flashing a new sketch in it. We want to have the UPDI programfunctionality on the reset-pin,
-and also want to keep all I/O-pins for other purposes than having a software-reset-function.
+before flashing a new sketch in it. We want to keep the UPDI programfunctionality on the updi-pin,
+and also want to keep all I/O-pins for other purposes (other than having a software-reset-function).
 
 To reset the controller, it is also possible to remove the supply voltage for a short while.
-The DTR pin is going just before programming from VDD to 0 Volt, via C1, Q1 is not conducting
+The DTR pin is going just before programming from VDD to 0 Volt, via C1, Q1 will not conduct
 for a short while. In this short time also Q2 is not conducting, so the VDD for the target is removed.
-R5 is present to have a low resitant pull down path, so the target is not fed by the TX pin.
+R5 is present to have a low resistant pull-down path, so the parasitic supply by the TX pin is not enough
+to keep the part out of reset.
 
-With this circuit, all will work as with an ordinary arduino board.
+### After the flashing
+After the flash action, the serial monitor within Arduino is becomes active again (if started via the menu),
+so it all works just as with an ordinary arduino board.
+
