@@ -22,7 +22,7 @@ R5 is present to have a low resistant pull-down path, so the parasitic supply by
 to keep the part out of reset.
 
 ### After the flashing
-After the flash action, the serial monitor within Arduino is becomes active again (if started via the menu),
+After the flash action, the serial monitor within Arduino becomes active again (if started via the menu),
 so it all works just as with an ordinary arduino board.
 
 # MegaTinyUtils
