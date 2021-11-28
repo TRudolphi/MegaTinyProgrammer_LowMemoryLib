@@ -60,3 +60,4 @@ so it all works just as with an ordinary arduino board.
 
 ## UPDI low and high voltage programmer and UART switcher with reset function
 
+![image](HighVoltageUpdiProgrammerSwitcherWithReset.jpg)
