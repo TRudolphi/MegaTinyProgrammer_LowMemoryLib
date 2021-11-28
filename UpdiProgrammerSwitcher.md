@@ -49,8 +49,8 @@ before flashing a new sketch in it. We want to keep the UPDI program functionali
 and also want to keep all I/O-pins for other purposes (other than having a software-reset-function).
 
 To reset the controller, it is also possible to remove the supply voltage for a short while.
-The DTR pin is going just before programming from VDD to 0 Volt, via C1, Q1 will not conduct
-for a short while. In this short time also Q2 is not conducting, so the VDD for the target is removed.
+The DTR pin is going just before programming from VDD to 0 Volt, via C3 and filter R3-C2 the switch Z is set
+to Z0 for a short while (200ms). During this time Q1 is not conducting, so the VDD for the target is removed.
 R5 is present to have a low resistant pull-down path, so the parasitic supply by the TX pin is not enough
 to keep the part out of reset.
 
