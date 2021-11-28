@@ -34,7 +34,7 @@ Con:<br>
 Pro:
 * when Arduino terminal is active, Attiny uart pins are switched to the PC RS232
 
-Con:<br>
+Con:
 * No high voltage UPDI possible<br>
 
 With the jumper JP1 two ways of controller flashing can be choosen:
@@ -57,4 +57,6 @@ to keep the part out of reset.
 ### After the flashing
 After the flash action, the serial monitor within Arduino becomes active again (if started via the menu),
 so it all works just as with an ordinary arduino board.
+
+## UPDI low and high voltage programmer and UART switcher with reset function
 
