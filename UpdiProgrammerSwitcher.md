@@ -1,9 +1,9 @@
-# Circuit for (high voltage) programming / serial tracing an Attiny via the UDPI-pin
+# Circuit for (high voltage) programming an Attiny via the UDPI-pin, with serial tracing possibility 
 
 New Attiny processors like the Attiny1606 / 414 etc. can be programmed via only one pin (reset pin).
 On this page I show some circuits to do this, starting with the most basic one.
 
-To have the same functionality as the statndard Arduino's, after programming we like to switch back to the serial port
+To have the same functionality as the standard Arduino's, after programming we like to switch back to the serial port
 so it can be used for RS232 tracing and debugging. This will be part of the designs.
 
 All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
@@ -12,12 +12,30 @@ All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
 
 ![image](UpdiOnly.jpg)
 
-Pro: very simple design
+Pro: very simple design<br>
 Con: No tracing possible via the same serial interface
 
-![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
+## UPDI and UART switcher
 
-The header-pinning is based on the very common USB-FTDI-RS232 interface.
+![image](UpdiAndSwitcher.jpg)
+
+Pro:
+* simple design<br>
+* when Arduino terminal is active, Attiny uart pins are switched to the PC RS232
+
+Con:<br>
+* No reset of the target possible (without programming)<br>
+* When a bootloader is active in the target, this can not be used (no reset)<br>
+
+## UPDI and UART switcher with reset function
+
+![image](UpdiProgrammerSwitcherWithReset.jpg)
+
+Pro:
+* when Arduino terminal is active, Attiny uart pins are switched to the PC RS232
+
+Con:<br>
+* No high voltage UPDI possible<br>
 
 With the jumper JP1 two ways of controller flashing can be choosen:
 
@@ -27,7 +45,7 @@ In this mode the circuit automaticly switches between an UDPI sketch upload and 
 
 ### 2-3 => Flashing with an internal bootloader / serial terminal
 When a bootloader is present in the controller (via Burn Bootloader), you need to reset the controller
-before flashing a new sketch in it. We want to keep the UPDI programfunctionality on the updi-pin,
+before flashing a new sketch in it. We want to keep the UPDI program functionality on the updi-pin,
 and also want to keep all I/O-pins for other purposes (other than having a software-reset-function).
 
 To reset the controller, it is also possible to remove the supply voltage for a short while.
