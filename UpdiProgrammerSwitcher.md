@@ -1,4 +1,19 @@
-# Circuit for programming / serial tracing an Attiny with UDPI-pin
+# Circuit for (high voltage) programming / serial tracing an Attiny via the UDPI-pin
+
+New Attiny processors like the Attiny1606 / 414 etc. can be programmed via only one pin (reset pin).
+On this page I show some circuits to do this, starting with the most basic one.
+
+To have the same functionality as the statndard Arduino's, after programming we like to switch back to the serial port
+so it can be used for RS232 tracing and debugging. This will be part of the designs.
+
+All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
+
+## basic UPDI only programmer
+
+![image](UpdiOnly.jpg)
+
+Pro: very simple design
+Con: No tracing possible via the same serial interface
 
 ![image](UpdiAndWithBootloaderFlasher.jpg) "automatic switcher between flashing and the serial terminal"
 
