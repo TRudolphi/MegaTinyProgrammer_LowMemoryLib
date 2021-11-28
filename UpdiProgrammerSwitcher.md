@@ -61,3 +61,12 @@ so it all works just as with an ordinary arduino board.
 ## UPDI low and high voltage programmer and UART switcher with reset function
 
 ![image](HighVoltageUpdiProgrammerSwitcherWithReset.jpg)
+
+With this circuit an Attiny is doing all the switching of the UART port. With the 3 jumpers the programming mode<br>
+can be set:
+* JP1, low voltage UPDI programming and serial tracing
+* JP2, high voltage UPDI programming and serial tracing
+* JP1,2 no jumper, programming via targets internal bootloader and serial tracing
+* JP3 with jumper, the target is not reset (normal operation is without jumper!)
+
+ 
