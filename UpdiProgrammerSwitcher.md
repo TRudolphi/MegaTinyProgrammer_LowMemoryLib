@@ -8,14 +8,14 @@ so it can be used for RS232 tracing and debugging. This will be part of the desi
 
 All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
 
-## basic UPDI only programmer
+## 1. Basic UPDI only programmer
 
 ![image](UpdiOnly.jpg)
 
 Pro: very simple design<br>
 Con: No tracing possible via the same serial interface
 
-## UPDI and UART switcher
+## 2. UPDI and UART switcher
 
 ![image](UpdiAndSwitcher.jpg)
 
@@ -27,7 +27,7 @@ Con:<br>
 * No reset of the target possible (without programming)<br>
 * When a bootloader is active in the target, this can not be used (no reset)<br>
 
-## UPDI and UART switcher with reset function
+## 3. UPDI and UART switcher with reset function
 
 ![image](UpdiProgrammerSwitcherWithReset.jpg)
 
@@ -58,7 +58,7 @@ to keep the part out of reset.
 After the flash action, the serial monitor within Arduino becomes active again (if started via the menu),
 so it all works just as with an ordinary arduino board.
 
-## UPDI low and high voltage programmer and UART switcher with reset function
+## 4. UPDI low and high voltage programmer and UART switcher with reset function
 
 ![image](HighVoltageUpdiProgrammerSwitcherWithReset.jpg)
 
