@@ -8,6 +8,8 @@ so it can be used for RS232 tracing and debugging. This will be part of the desi
 
 All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
 
+All is working with this MegaTiny board library: https://github.com/SpenceKonde/megaTinyCore
+
 ## 1. Basic UPDI only programmer
 
 ![image](UpdiOnly.jpg)
@@ -69,4 +71,17 @@ can be set:
 * JP1,2 no jumper, programming via targets internal bootloader and serial tracing
 * JP3 with jumper, the target is not reset (normal operation is without jumper!)
 
- 
+### Low voltage UPDI
+Place jumper JP1, the led is blinking once per 2 seconds<br>
+Select in Arduino the board of the top 3 lines:<br>
+![image](UPDI-LowVoltageSetting.jpg)<br>
+
+press the Arduino upload button. The project is compiled and send via UPDI to the processor.<br>
+When the Uart-terminal was active, after programming your trace output can be seen.
+
+
+### High voltage UPDI
+Place jumper JP2, the led is blinking twice per 2 seconds<br>
+For the further functionality, see the low voltage chapter above.
+
+
