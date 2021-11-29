@@ -96,3 +96,14 @@ Scope traces of the first break and sync character:
 The circuit is waiting for the first break character from the PC. This is the trigger to<br>
 give a 12Volt pulse of about 200us. after this pulse a break character is generated and send<br>
 to the target. The rest of the protocol is driven by the python scripts from Arduino.
+
+### Bootloader programming
+When no jumpers are placed, the target is not flashed via UPDI, but with the internal bootloader of the target.<br>
+This bootloader first need to be flashed by UPDI to the target:
+
+Choose within the menu the variant with Optoboot:
+![image](UPDI-bootloaderSetting.jpg)<br>
+
+On the programmer place JP1 or JP2, and press burn bootloader on the bottom of the Tools menu.
+
+
