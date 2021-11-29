@@ -101,7 +101,7 @@ to the target. The rest of the protocol is driven by the python scripts from Ard
 When no jumpers are placed, the target is not flashed via UPDI, but with the internal bootloader of the target.<br>
 This bootloader first need to be flashed by UPDI to the target:
 
-Choose within the menu the variant with Optoboot:
+Choose within the menu the variant with Optiboot:
 ![image](UPDI-bootloaderSetting.jpg)<br>
 
 On the programmer place JP1 or JP2, and press burn bootloader on the bottom of the Tools menu.
