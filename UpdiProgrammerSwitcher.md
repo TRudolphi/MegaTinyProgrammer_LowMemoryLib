@@ -79,6 +79,10 @@ Select in Arduino the board of the top 3 lines:<br>
 press the Arduino upload button. The project is compiled and send via UPDI to the processor.<br>
 When the Uart-terminal was active, after programming your trace output can be seen.
 
+Scope traces of the first break and sync character:
+
+![image](UPDI-scope1.jpg)<br>
+![image](UPDI-scope2.jpg)<br>
 
 ### High voltage UPDI
 Place jumper JP2, the led is blinking twice per 2 seconds<br>
