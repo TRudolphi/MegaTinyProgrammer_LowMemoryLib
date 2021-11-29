@@ -88,4 +88,11 @@ Scope traces of the first break and sync character:
 Place jumper JP2, the led is blinking twice per 2 seconds<br>
 For the further functionality, see the low voltage chapter above.
 
+Scope traces of the first break and sync character:
 
+![image](UPDIHV-scope1.jpg)<br>
+![image](UPDIHV-scope2.jpg)<br>
+
+The circuit is waiting for the first break character from the PC. This is the trigger to<br>
+give a 12Volt pulse of about 200us. after this pulse a break character is generated and send<br>
+to the target. The rest of the protocol is driven by the python scripts from Arduino.
