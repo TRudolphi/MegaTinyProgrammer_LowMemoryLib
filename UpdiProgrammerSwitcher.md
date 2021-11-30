@@ -106,4 +106,8 @@ Choose within the menu the variant with Optiboot:
 
 On the programmer place JP1 or JP2, and press burn bootloader on the bottom of the Tools menu.
 
+When a bootloader is present in the target, the sketch can be iuploaded via the Arduino uploadbutton.
+
+Scope trace of the start of the bootload proces (reset the board and begin bootloading):<br>
+![image](Bootload-scope.jpg)<br>
 
