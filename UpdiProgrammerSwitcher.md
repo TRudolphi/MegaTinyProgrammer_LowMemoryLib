@@ -98,7 +98,8 @@ give a 12Volt pulse of about 200us. after this pulse a break character is genera
 to the target. The rest of the protocol is driven by the python scripts from Arduino.
 
 ### Bootloader programming
-When no jumpers are placed, the target is not flashed via UPDI, but with the internal bootloader of the target.<br>
+When no jumpers are placed (the led is blinking three times per 2 seconds), the target is not flashed via UPDI,<br>
+but with the internal bootloader of the target.<br>
 This bootloader first need to be flashed by UPDI to the target:
 
 Choose within the menu the variant with Optiboot:
