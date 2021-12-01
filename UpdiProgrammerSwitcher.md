@@ -72,6 +72,8 @@ can be set:
 * JP1,2 no jumper, programming via targets internal bootloader and serial tracing
 * JP3 with jumper, the target is not reset (normal operation is without jumper!)
 
+Remark: When it is used with 5Volt, the zenerdiode voltage has to be increased to 5.1Volt.
+
 ### Low voltage UPDI
 Place jumper JP1, the led is blinking once per 2 seconds<br>
 Select in Arduino the board of the top 3 lines:<br>
