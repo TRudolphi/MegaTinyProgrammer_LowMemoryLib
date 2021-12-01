@@ -117,3 +117,6 @@ Scope trace of the start of the bootload proces (reset the board and begin bootl
 
 The sketch for this programmer can be found here:<br>
 [Programmer sketch](https://github.com/TRudolphi/MegaTinyUtils/tree/main/examples/FlashingSwitcher)
+
+In this sketch also some explanation how it is all working (also the handling of 'realtime' signals with Events<br>
+and the logical block)
