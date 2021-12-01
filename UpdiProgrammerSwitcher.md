@@ -3,8 +3,9 @@
 New Attiny processors like the Attiny1606 / 414 etc. can be programmed via only one pin (reset pin).
 On this page I show some circuits to do this, starting with the most basic one.
 
-To have the same functionality as the standard Arduino's, after programming we like to switch back to the serial port
-so it can be used for RS232 tracing and debugging. This will be part of the designs.
+To have the same functionality as the standard Arduino's, after programming we like to switch back to the serial port<br>
+so it can be used for RS232 tracing and debugging. With the various programmers I found on the internet this switching to the<br>
+UART for tracing was not possible.
 
 All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
 
