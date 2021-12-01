@@ -113,3 +113,7 @@ When a bootloader is present in the target, the sketch can be iuploaded via the 
 Scope trace of the start of the bootload proces (reset the board and begin bootloading):<br>
 ![image](Bootload-scope.jpg)<br>
 
+### Sketch for the programmer
+
+The sketch for this programmer can be found here:<br>
+[Programmer sketch](https://github.com/TRudolphi/MegaTinyUtils/tree/main/examples/FlashingSwitcher)
