@@ -3,8 +3,9 @@
 New Attiny processors like the Attiny1606 / 414 etc. can be programmed via only one pin (reset pin).
 On this page I show some circuits to do this, starting with the most basic one.
 
-To have the same functionality as the standard Arduino's, after programming we like to switch back to the serial port
-so it can be used for RS232 tracing and debugging. This will be part of the designs.
+To have the same functionality as the standard Arduino's, after programming we like to switch back to the serial port<br>
+so it can be used for RS232 tracing and debugging. With the various programmers I found on the internet this switching to the<br>
+UART for tracing was not possible.
 
 All is based on the pinning of a very standard FTDI-USB-RS232 serial interface
 
@@ -71,6 +72,8 @@ can be set:
 * JP1,2 no jumper, programming via targets internal bootloader and serial tracing
 * JP3 with jumper, the target is not reset (normal operation is without jumper!)
 
+Remark: When it is used with 5Volt, the zenerdiode voltage has to be increased to 5.1Volt.
+
 ### Low voltage UPDI
 Place jumper JP1, the led is blinking once per 2 seconds<br>
 Select in Arduino the board of the top 3 lines:<br>
@@ -112,3 +115,10 @@ When a bootloader is present in the target, the sketch can be iuploaded via the 
 Scope trace of the start of the bootload proces (reset the board and begin bootloading):<br>
 ![image](Bootload-scope.jpg)<br>
 
+### Sketch for the programmer
+
+The sketch for this programmer can be found here:<br>
+[Programmer sketch](https://github.com/TRudolphi/MegaTinyUtils/tree/main/examples/FlashingSwitcher)
+
+In this sketch also some explanation how it is all working (also the handling of 'realtime' signals with Events<br>
+and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor.
