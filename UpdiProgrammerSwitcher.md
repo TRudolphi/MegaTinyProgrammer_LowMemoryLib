@@ -1,4 +1,4 @@
-# Circuit for (high voltage) programming an Attiny via the UDPI-pin, with serial tracing possibility 
+# (High voltage) programming an Attiny via the UDPI-pin, with serial tracing possibility 
 
 New Attiny processors like the Attiny1606 / 414 etc. can be programmed via only one pin (reset pin).
 On this page I show some circuits to do this, starting with the most basic one.
