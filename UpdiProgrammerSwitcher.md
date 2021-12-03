@@ -61,6 +61,9 @@ to keep the part out of reset.
 After the flash action, the serial monitor within Arduino becomes active again (if started via the menu),
 so it all works just as with an ordinary arduino board.
 
+### Build on a experiment-board
+![image](ProgrammerSwitcherReset.jpg)
+
 ## 4. UPDI low and high voltage programmer and UART switcher with reset function
 
 ![image](HighVoltageUpdiProgrammerSwitcherWithReset.jpg)
