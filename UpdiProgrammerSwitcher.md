@@ -82,7 +82,9 @@ Place jumper JP1, the led is blinking once per 2 seconds<br>
 Select in Arduino the board of the top 3 lines:<br>
 ![image](UPDI-LowVoltageSetting.jpg)<br>
 
-press the Arduino upload button. The project is compiled and send via UPDI to the processor.<br>
+As programmer choose: SerialUPDI with 4.7k resistor or diode (230400baud)<br>
+
+press the Arduino upload button. The project is compiled and send via UPDI to the target-processor.<br>
 When the Uart-terminal was active, after programming your trace output can be seen.
 
 Scope traces of the first break and sync character:
@@ -101,7 +103,9 @@ Scope traces of the first break and sync character:
 
 The circuit is waiting for the first break character from the PC. This is the trigger to<br>
 give a 12Volt pulse of about 200us. after this pulse a break character is generated and send<br>
-to the target. The rest of the protocol is driven by the python scripts from Arduino.
+to the target. The rest of the protocol is driven by the python scripts from Arduino.<br>
+By sending a 12Volt pulse, the pin PA0 is forced to the UPDI mode, even it is programmed for reset<br>
+or IO-function.
 
 ### Bootloader programming
 When no jumpers are placed (the led is blinking three times per 2 seconds), the target is not flashed via UPDI,<br>
@@ -113,7 +117,7 @@ Choose within the menu the variant with Optiboot:
 
 On the programmer place JP1 or JP2, and press burn bootloader on the bottom of the Tools menu.
 
-When a bootloader is present in the target, the sketch can be iuploaded via the Arduino uploadbutton.
+When a bootloader is present in the target, the sketch can be uploaded via the Arduino uploadbutton.
 
 Scope trace of the start of the bootload proces (reset the board and begin bootloading):<br>
 ![image](Bootload-scope.jpg)<br>
@@ -127,4 +131,5 @@ The sketch for this programmer can be found here:<br>
 [Programmer sketch](https://github.com/TRudolphi/MegaTinyUtils/tree/main/examples/FlashingSwitcher)
 
 In this sketch also some explanation how it is all working (also the handling of 'realtime' signals with Events<br>
-and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor.
+and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor to a 4 .. 16Kb<br>
+ATTiny controller (f.i. ATTiny404 .. ATTiny1604)
