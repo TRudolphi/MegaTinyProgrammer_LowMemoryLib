@@ -1,5 +1,5 @@
-/*******************************************************************************************
- * Firmware for a programmer with reset functionality.
+/*
+ * Firmware for a low/high voltage UPDI programmer with UART switching and reset functionality.
  * 
  * 3 types of programming possible:
  * JP1 placed:       Low voltage UDPI (factory default of a Attiny)
@@ -29,6 +29,8 @@
  *        out:      output to the target RX-pin
  *        in:       PA1, TX of the PC
  *        function: out follows the input A1 (when tracing the target), or is set to HIGH (while UPDI programming)
+ *        
+ *        Works best on the highest frequency (20MHz), for low interrupt latency
  *        
  * Author: T.Rudolphi
  *         The Netherlands
@@ -92,7 +94,7 @@ ISR(PORTA_PORT_vect)
       FallingEdge = true;
     }
     else
-    {    
+    { // Rising edge   
       PulsWidth = PulsTime - PulsStart;
       if((PulsWidth > 65) && (PulsWidth < 200))
       { // Break at 115200 or 57600 baud detected
@@ -162,52 +164,6 @@ void ActivatePA1Interrupt(bool activate)
     PORTA.PIN1CTRL  = 0b00001000; // No interrupts
     CatchFirstBreak = false;      
   }
-}
-
-void setup() {
-  delay(500);
-  // ---EVENTS---
-  Event2.set_generator(gen2::pin_pa1);          // Set pin PA1(PcTxPin) as event generator (PC-TX to RX-Attiny)
-  Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user (TX-Attiny to PC-RX)
-
-  SetChannel(NO_TARGET_CHANNEL);
-    
-  Event2.start();                               // Start the event channel2 once
-
-  // ---LOGIC---                                // Initialize logic block 0
-  Logic0.enable = true;                         // Enable logic block 0
-  Logic0.input0 = in::unused;                   // don't use input PA0
-  Logic0.input1 = in::input;                    // Set PA1 as input
-  Logic0.input2 = in::unused;                   // don't use input PA2
-  Logic0.output = out::enable;                  // Enable logic block 0 output pin (PA4)
-  Logic0.truth = 0xCC;                          // Set truth table, just follow PA1
-  Logic0.init();                                // Set the settings
-
-  //Logic::start();                             // not yet start the output
-
-  pinConfigure(ModePin, PIN_DIR_INPUT);
-  pinConfigure(DtrPin,  PIN_PULLUP);
-  pinConfigure(LED,     PIN_DIR_OUTPUT);
-  
-  digitalWriteFast(Prog12VPulsePin,HIGH);
-  pinConfigure(Prog12VPulsePin,PIN_DIR_OUTPUT);
-  
-  pinConfigure(PowerOutPin,PIN_DIR_OUTPUT);
-  POWER_ON();
-
-  pinConfigure(TargetUpdiRxPin, PIN_PULLUP);
-  pinConfigure(TargetTxPin, PIN_PULLUP);
-        
-  digitalWriteFast(TargetUpdiTxPin,HIGH);
-  pinConfigure(TargetUpdiTxPin,PIN_DIR_OUTPUT); // Active drive pin high, also after reconnecting an event / logicblock
-           
-  digitalWriteFast(TargetRxPin,HIGH);
-  pinConfigure(TargetRxPin,PIN_DIR_OUTPUT);     // Active drive pin high, also after reconnecting an event / logicblock
-                 
-  digitalWriteFast(PcRxPin,HIGH);
-  pinConfigure(PcRxPin,PIN_DIR_OUTPUT);         // Active drive pin high, also after reconnecting an event / logicblock
- 
-  ActivatePA1Interrupt(false);
 }
 
 byte ReadMode(void)
@@ -315,6 +271,52 @@ void DoTargetReset(void)
   SetChannel(UART_CHANNEL);    
 }
 
+void setup() {
+  delay(500);
+  // ---EVENTS---
+  Event2.set_generator(gen2::pin_pa1);          // Set pin PA1(PcTxPin) as event generator (PC-TX to RX-Attiny)
+  Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user (TX-Attiny to PC-RX)
+
+  SetChannel(NO_TARGET_CHANNEL);
+    
+  Event2.start();                               // Start the event channel2 once
+
+  // ---LOGIC---                                // Initialize logic block 0
+  Logic0.enable = true;                         // Enable logic block 0
+  Logic0.input0 = in::unused;                   // don't use input PA0
+  Logic0.input1 = in::input;                    // Set PA1 as input
+  Logic0.input2 = in::unused;                   // don't use input PA2
+  Logic0.output = out::enable;                  // Enable logic block 0 output pin (PA4)
+  Logic0.truth = 0xCC;                          // Set truth table, just follow PA1
+  Logic0.init();                                // Set the settings
+
+  //Logic::start();                             // not yet start the output
+
+  pinConfigure(ModePin, PIN_DIR_INPUT);
+  pinConfigure(DtrPin,  PIN_PULLUP);
+  pinConfigure(LED,     PIN_DIR_OUTPUT);
+  
+  digitalWriteFast(Prog12VPulsePin,HIGH);
+  pinConfigure(Prog12VPulsePin,PIN_DIR_OUTPUT);
+  
+  pinConfigure(PowerOutPin,PIN_DIR_OUTPUT);
+  POWER_ON();
+
+  pinConfigure(TargetUpdiRxPin, PIN_PULLUP);
+  pinConfigure(TargetTxPin, PIN_PULLUP);
+        
+  digitalWriteFast(TargetUpdiTxPin,HIGH);
+  pinConfigure(TargetUpdiTxPin,PIN_DIR_OUTPUT); // Active drive pin high, also after reconnecting an event / logicblock
+           
+  digitalWriteFast(TargetRxPin,HIGH);
+  pinConfigure(TargetRxPin,PIN_DIR_OUTPUT);     // Active drive pin high, also after reconnecting an event / logicblock
+                 
+  digitalWriteFast(PcRxPin,HIGH);
+  pinConfigure(PcRxPin,PIN_DIR_OUTPUT);         // Active drive pin high, also after reconnecting an event / logicblock
+ 
+  ActivatePA1Interrupt(false);
+}
+
 void loop()
 {
   static byte Prescaler = 0;
@@ -343,7 +345,7 @@ void loop()
   {
     case FLASH_VIA_UPDI_HV:     
       if((DtrPinChange & CHANGED) > 0)
-      {
+      { // State-change of the DTR pin
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_TRUE)
         { // DTR is HIGH; UART for UDPI programming
           ActivatePA1Interrupt(true);
@@ -357,11 +359,11 @@ void loop()
       else
       {
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_TRUE)
-        {
+        { // UART for UDPI programming
           if(FallingEdge == true)
           {
             FallingEdge = false; 
-            PrevEdgeMs = millis();
+            PrevEdgeMs  = millis();
           }
           if(CatchFirstBreak == false)
           {
@@ -377,7 +379,7 @@ void loop()
                           
     case FLASH_VIA_BOOTLOADER:           
       if((DtrPinChange & CHANGED) > 0)
-      {
+      { // State-change of the DTR pin
         ActivatePA1Interrupt(false);  
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_FALSE) // falling edge, reset (power-cycle) the target
         {
@@ -390,7 +392,7 @@ void loop()
     case FLASH_VIA_UPDI:  
     default:                    
       if((DtrPinChange & CHANGED) > 0)
-      {
+      { // State-change of the DTR pin
         ActivatePA1Interrupt(false);  
         
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_TRUE)
@@ -405,7 +407,7 @@ void loop()
       else
       {
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_TRUE)
-        {
+        { // UART for UDPI programming
           if(TargetChannel == UART_CHANNEL)
           {
             SetChannel(UPDI_CHANNEL);
