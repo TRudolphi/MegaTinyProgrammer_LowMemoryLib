@@ -82,6 +82,8 @@ Place jumper JP1, the led is blinking once per 2 seconds<br>
 Select in Arduino the board of the top 3 lines:<br>
 ![image](UPDI-LowVoltageSetting.jpg)<br>
 
+As programmer choose: SerialUPDI with 4.7k resistor or diode (230400baud)<br>
+
 press the Arduino upload button. The project is compiled and send via UPDI to the target-processor.<br>
 When the Uart-terminal was active, after programming your trace output can be seen.
 
