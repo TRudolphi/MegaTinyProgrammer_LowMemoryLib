@@ -115,7 +115,7 @@ Choose within the menu the variant with Optiboot:
 
 On the programmer place JP1 or JP2, and press burn bootloader on the bottom of the Tools menu.
 
-When a bootloader is present in the target, the sketch can be iuploaded via the Arduino uploadbutton.
+When a bootloader is present in the target, the sketch can be uploaded via the Arduino uploadbutton.
 
 Scope trace of the start of the bootload proces (reset the board and begin bootloading):<br>
 ![image](Bootload-scope.jpg)<br>
@@ -129,4 +129,5 @@ The sketch for this programmer can be found here:<br>
 [Programmer sketch](https://github.com/TRudolphi/MegaTinyUtils/tree/main/examples/FlashingSwitcher)
 
 In this sketch also some explanation how it is all working (also the handling of 'realtime' signals with Events<br>
-and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor.
+and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor to a 4 .. 16Kb<br>
+ATTiny controller (f.i. ATTiny404 .. ATTiny1604)
