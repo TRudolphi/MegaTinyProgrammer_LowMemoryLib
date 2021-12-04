@@ -82,7 +82,7 @@ Place jumper JP1, the led is blinking once per 2 seconds<br>
 Select in Arduino the board of the top 3 lines:<br>
 ![image](UPDI-LowVoltageSetting.jpg)<br>
 
-press the Arduino upload button. The project is compiled and send via UPDI to the processor.<br>
+press the Arduino upload button. The project is compiled and send via UPDI to the target-processor.<br>
 When the Uart-terminal was active, after programming your trace output can be seen.
 
 Scope traces of the first break and sync character:
@@ -101,7 +101,9 @@ Scope traces of the first break and sync character:
 
 The circuit is waiting for the first break character from the PC. This is the trigger to<br>
 give a 12Volt pulse of about 200us. after this pulse a break character is generated and send<br>
-to the target. The rest of the protocol is driven by the python scripts from Arduino.
+to the target. The rest of the protocol is driven by the python scripts from Arduino.<br>
+By sending a 12Volt pulse, the pin PA0 is forced to the UPDI mode, even it is programmed for reset<br>
+or IO-function.
 
 ### Bootloader programming
 When no jumpers are placed (the led is blinking three times per 2 seconds), the target is not flashed via UPDI,<br>
