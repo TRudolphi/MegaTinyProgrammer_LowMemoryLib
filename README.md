@@ -3,8 +3,7 @@
 For explanation about several UPDI programming circuits and a DIY Low/High voltage UPDI
 programmer / uart switcher see here:
 
-## [Updi Programmer Switcher](UpdiProgrammerSwitcher.md)
-
+## [Updi Programmer / uart switcher](UpdiProgrammerSwitcher.md)<br>
 
 
 # MegaTinyUtils
