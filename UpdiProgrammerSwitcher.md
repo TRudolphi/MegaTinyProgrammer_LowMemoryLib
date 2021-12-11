@@ -103,7 +103,7 @@ Scope traces of the first break and sync character:
 
 The circuit is waiting for the first break character from the PC. This is the trigger to<br>
 give a 12Volt pulse sequence of a 20ms power-down, 2ms power-up, 50us HV-pulse and a break<br>
-characte. The rest of the protocol is driven by the python scripts from Arduino.<br>
+character. The rest of the protocol is driven by the python scripts from Arduino.<br>
 By sending a 12Volt pulse, the pin PA0 is forced to the UPDI mode, even it is programmed for reset<br>
 or IO-function. The power-down is needed to be sure a PA0 set as output, is set to input.
 
