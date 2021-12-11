@@ -102,10 +102,10 @@ Scope traces of the first break and sync character:
 ![image](UPDIHV-scope2.jpg)<br>
 
 The circuit is waiting for the first break character from the PC. This is the trigger to<br>
-give a 12Volt pulse of about 200us. after this pulse a break character is generated and send<br>
-to the target. The rest of the protocol is driven by the python scripts from Arduino.<br>
+give a 12Volt pulse sequence of a 20ms power-down, 2ms power-up, 50us HV-pulse and a break<br>
+characte. The rest of the protocol is driven by the python scripts from Arduino.<br>
 By sending a 12Volt pulse, the pin PA0 is forced to the UPDI mode, even it is programmed for reset<br>
-or IO-function.
+or IO-function. The power-down is needed to be sure a PA0 set as output, is set to input.
 
 ### Bootloader programming
 When no jumpers are placed (the led is blinking three times per 2 seconds), the target is not flashed via UPDI,<br>
