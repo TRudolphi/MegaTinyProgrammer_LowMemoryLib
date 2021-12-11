@@ -69,8 +69,13 @@
 #define FLASH_VIA_BOOTLOADER  2
 #define MODE_UNDEFINED        3
 
-#define RESET_TIME_MS 100    // ms
-#define HV_TIME_US    200    // us
+#define SHORT_RESET         false
+#define LONG_RESET          true
+  
+#define RESET_TIME_SHORT_MS 20    // ms
+#define RESET_TIME_LONG_MS  100   // ms
+#define HV_TIME_US          50    // us
+#define BREAK_CHAR_TIME     85    // us
 
 #define POWER_ON()    digitalWriteFast(PowerOutPin,LOW)  
 #define POWER_OFF()   digitalWriteFast(PowerOutPin,HIGH) 
@@ -79,6 +84,26 @@ unsigned int PulsWidth;
 bool CatchFirstBreak;
 bool FallingEdge;
 byte TargetChannel = NO_TARGET_CHANNEL;
+bool DoHvSequenceFlag = false;
+
+void DoHvSequence(void)
+{
+  DoTargetReset(SHORT_RESET);             // Short power reset, all events / logicblock disabled
+  delay(2);
+  digitalWriteFast(Prog12VPulsePin,LOW);
+  delayMicroseconds(HV_TIME_US);          // 12Volt pulse for xx us
+  digitalWriteFast(Prog12VPulsePin,HIGH);
+  delayMicroseconds(5);                   // float for 5uS (datasheet 1..10us)
+  Event3.set_generator(gen3::pin_pb0);    // Set pin PB0 as event generator (TargetUpdiRxPin to PcRxPin)
+  Event3.set_user(user::evoutb_pin_pb2);  // Set EVOUTB as event user       (TX-Attiny to PC-RX)
+  Event3.start();  
+  digitalWriteFast(TargetUpdiTxPin,LOW);
+  digitalWriteFast(PcRxPin,LOW);
+  delayMicroseconds(BREAK_CHAR_TIME);     // Send handshake-break character
+  digitalWriteFast(TargetUpdiTxPin,HIGH);
+  digitalWriteFast(PcRxPin,HIGH);
+  SetChannel(UPDI_CHANNEL);               // Hardware takes over, to follow the characters from the PC
+}
 
 ISR(PORTA_PORT_vect) 
 {
@@ -98,17 +123,12 @@ ISR(PORTA_PORT_vect)
       PulsWidth = PulsTime - PulsStart;
       if((PulsWidth > 65) && (PulsWidth < 200))
       { // Break at 115200 or 57600 baud detected
-        CatchFirstBreak = false;
-        digitalWriteFast(Prog12VPulsePin,LOW);
-        delayMicroseconds(HV_TIME_US);   // 12Volt pulse for 200us
-        digitalWriteFast(Prog12VPulsePin,HIGH);
-        delayMicroseconds(5);         // float for 5uS (datasheet 1..10us) 
+        CatchFirstBreak = false;              // Break detected, now setup for the 12Volt sequence
+        SetChannel(NO_TARGET_CHANNEL);        // No hardware feed through of signals
+        digitalWriteFast(TargetRxPin,LOW);    // Set outputpins to 0 Volt, so it cannot supply the target
         digitalWriteFast(TargetUpdiTxPin,LOW);
-        digitalWriteFast(PcRxPin,LOW);
-        delayMicroseconds(85);        // Send handshake-break character
-        digitalWriteFast(TargetUpdiTxPin,HIGH);
-        digitalWriteFast(PcRxPin,HIGH);
-        SetChannel(UPDI_CHANNEL);     // Hardware takes over, to follow the characters from the PC
+        POWER_OFF();                          // Power off the target
+        DoHvSequenceFlag = true;              // Flag todo the 12Volt sequence in the mainloop
       }
     }
   }
@@ -138,15 +158,15 @@ void SetChannel(byte Channel)
       Event2.clear_user(user::evouta_pin_pa2);    // Stop EVOUTA as event user      (TargetUpdiTxPin HIGH level) 
       Event3.set_generator(gen3::pin_pb1);        // Set pin PB1 as event generator (TargetTxPin     to PcRxPin)
     }
+    Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user       (TX-Attiny to PC-RX)
+    Event3.start(); 
   }
   else
-  { // No data to the Target
+  { // No data to the Target and PC
     Logic::stop();                                // Stop output PA4                (TargetRxPin     HIGH level)                          
     Event2.clear_user(user::evouta_pin_pa2);      // Stop EVOUTA as event user      (TargetUpdiTxPin HIGH level) 
-    Event3.set_generator(gen3::pin_pb0);          // Set pin PB0 as event generator (TargetUpdiRxPin to PcRxPin)
+    Event3.clear_user(user::evoutb_pin_pb2);      // Stop EVOUTB as event user      (TX-Attiny       HIGH level) 
   }
-  Event3.set_user(user::evoutb_pin_pb2);          // Set EVOUTB as event user       (TX-Attiny to PC-RX)
-  Event3.start(); 
   TargetChannel = Channel;   
 }
 
@@ -260,15 +280,28 @@ byte CheckDtrPin(bool DtrReRead)
   return RetVal;   
 }
 
-void DoTargetReset(void)
+void DoTargetReset(bool ShortLong)
 {
   SetChannel(NO_TARGET_CHANNEL);
-  digitalWriteFast(TargetRxPin,LOW);  // Set outputpin to 0 Volt, so it cannot supply the target
+  digitalWriteFast(TargetRxPin,LOW);    // Set outputpins to 0 Volt, so it cannot supply the target
+  digitalWriteFast(TargetUpdiTxPin,LOW);
+  
   POWER_OFF();
-  delay(RESET_TIME_MS); 
+  if(ShortLong == LONG_RESET)
+  {
+    delay(RESET_TIME_LONG_MS); 
+  }
+  else
+  {
+    delay(RESET_TIME_SHORT_MS);
+  }
   POWER_ON();
-  digitalWriteFast(TargetRxPin,HIGH); // Set outputpin to high level 
-  SetChannel(UART_CHANNEL);    
+  digitalWriteFast(TargetRxPin,HIGH);     // Set outputpin to high level 
+  digitalWriteFast(TargetUpdiTxPin,HIGH); 
+  if(ShortLong == LONG_RESET)
+  {
+    SetChannel(UART_CHANNEL); 
+  }   
 }
 
 void setup() {
@@ -353,7 +386,7 @@ void loop()
         else
         { // DTR is LOW; UART to terminal
           ActivatePA1Interrupt(false);
-          DoTargetReset();
+          DoTargetReset(LONG_RESET);
         }        
       }
       else
@@ -375,6 +408,11 @@ void loop()
           } 
         }
       }
+      if(DoHvSequenceFlag == true)
+      { // Do the 12Volt sequence
+        DoHvSequenceFlag = false;
+        DoHvSequence();
+      }
       break;
                           
     case FLASH_VIA_BOOTLOADER:           
@@ -383,7 +421,7 @@ void loop()
         ActivatePA1Interrupt(false);  
         if((DtrPinChange & DTR_PIN_BIT) == DTR_PIN_FALSE) // falling edge, reset (power-cycle) the target
         {
-          DoTargetReset();
+          DoTargetReset(LONG_RESET);
         }
         SetChannel(UART_CHANNEL);     
       } 
@@ -401,7 +439,7 @@ void loop()
         }
         else
         { // UART to terminal
-          DoTargetReset();
+          DoTargetReset(LONG_RESET);
         }        
       }
       else
@@ -419,7 +457,7 @@ void loop()
           if(TargetChannel == UPDI_CHANNEL)
           {
             ActivatePA1Interrupt(false);
-            DoTargetReset();                           
+            DoTargetReset(LONG_RESET);                           
           }
         }                                  
       }
