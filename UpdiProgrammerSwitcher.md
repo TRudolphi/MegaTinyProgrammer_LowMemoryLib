@@ -87,7 +87,7 @@ Select in Arduino the board of the top 3 lines:<br>
 press the Arduino upload button. The project is compiled and send via UPDI to the target-processor.<br>
 When the Uart-terminal was active, after programming your trace output can be seen.
 
-Scope traces of the first break and sync character:
+Scope traces of the first break character, power down / up, HV-pulse and break character to target:
 
 ![image](UPDI-scope1.jpg)<br>
 ![image](UPDI-scope2.jpg)<br>
