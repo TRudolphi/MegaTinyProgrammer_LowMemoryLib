@@ -132,4 +132,4 @@ The sketch for this programmer can be found here:<br>
 
 In this sketch also some explanation how it is all working (also the handling of 'realtime' signals with Events<br>
 and the logical block). The sketch can be uploaded by a basic UPDI-programmer with 1 diode / resistor to a 4 .. 16Kb<br>
-ATTiny controller (f.i. ATTiny404 .. ATTiny1604)
+ATTiny controller (minimal a 1-serie, f.i. ATTiny414 .. ATTiny1614)
