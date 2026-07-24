@@ -15,26 +15,48 @@
  * 
  * For the realtime signals 2 internal events and the logic block are used:
  * Event2 
- *        out:      output to the target UPDI pin
+ *        out:      PA2 output to the target UPDI pin
  *        in:       PA1, TX of the PC
  *        function: out follows the input A1, or is set to HIGH (when tracing the target)
- *        
+ *                  --------------------
+ *                  |                  |
+ *      TX-PX PA1 ---                   --- PA2 (UDPI)
+ *                  |                  |
+ *                  -------------------- 
+ *                            |
+ *                            ---- Stop/ Start
  * Event3 
- *        out:      output to the RX-pin of the PC
+ *        out:      RB2 output to the RX-pin of the PC
  *        in:       PB0, UPDI of target read 
  *             -Or- PB1, TX of target (when tracing the target)
  *        function: outpin follows the input PB0 Or PB1 
+ *                  --------------------
+ *                  |                  |
+ *     UPDI   PB0 ---                  |
+ *                  |                  --- PB2 (RX PC)
+ *     TX-TRG PB1 ---                  |
+ *                  |                  |
+ *                  -------------------- 
+ *                            |
+ *                            ---- Stop/ Start
  *        
  * Logic block 
- *        out:      output to the target RX-pin
+ *        out:      PA4 output to the target RX-pin
  *        in:       PA1, TX of the PC
  *        function: out follows the input A1 (when tracing the target), or is set to HIGH (while UPDI programming)
- *        
+ *                  --------------------
+ *                  |                  |
+ *      TX-PX PA1 ---                   --- PA4 (RX Target)
+ *                  |                  |
+ *                  -------------------- 
+ *                            |
+ *                            ---- Stop/ Start
+ *
  *        Works best on the highest frequency (20MHz), for low interrupt latency
  *        
  * Author: T.Rudolphi
  *         The Netherlands
- *         december 2021
+ *         december 2021 / 2026
  *         https://github.com/TRudolphi/MegaTinyUtils
  *         
  */
@@ -59,6 +81,7 @@
 #define PcRxPin           PIN_PB2 // EVOUTB, event3 out           (UPDI or TX-target to PC-RX)
 #define DtrPin            PIN_PB3 // input                        (DTRpin: LOW=RS232 terminal, HIGH=UPDI programming)
 // ---IO---
+
 
 #define UPDI_CHANNEL          0
 #define UART_CHANNEL          1
@@ -86,22 +109,77 @@ bool FallingEdge;
 byte TargetChannel = NO_TARGET_CHANNEL;
 bool DoHvSequenceFlag = false;
 
+void ManualDrivePA2(bool OffOn)
+{
+  if (OffOn == false) {
+    PORTA.PIN2CTRL &= ~PORT_INVEN_bm;
+  }
+  else {
+    PORTA.PIN2CTRL |= PORT_INVEN_bm;
+  } 
+}
+
+void ManualDrivePA4(bool OffOn)
+{
+  if (OffOn == false) {
+    digitalWrite(TargetRxPin, HIGH);
+  }
+  else {
+    digitalWrite(TargetRxPin, LOW);
+  } 
+}
+
+void ManualDrivePB2(bool OffOn)
+{
+  if (OffOn == false) {
+    PORTB.PIN2CTRL &= ~PORT_INVEN_bm;
+  }
+  else {
+    PORTB.PIN2CTRL |= PORT_INVEN_bm;
+  } 
+}
+
+void DoTargetReset(bool ShortLong)
+{
+  SetChannel(NO_TARGET_CHANNEL);
+
+  ManualDrivePA2(false); // Set outputpins to 0 Volt, so it cannot supply the target
+  ManualDrivePA4(false); // Set outputpins to 0 Volt, so it cannot supply the target
+
+  POWER_OFF();
+  if(ShortLong == LONG_RESET)
+  {
+    delay(RESET_TIME_LONG_MS); 
+  }
+  else
+  {
+    delay(RESET_TIME_SHORT_MS);
+  }
+  POWER_ON();
+  ManualDrivePA2(true); // Set outputpin to high level
+  ManualDrivePA4(true); 
+
+  if(ShortLong == LONG_RESET)
+  {
+    SetChannel(UART_CHANNEL); 
+  }   
+}
+
 void DoHvSequence(void)
 {
   DoTargetReset(SHORT_RESET);             // Short power reset, all events / logicblock disabled
-  delay(2);
-  digitalWriteFast(Prog12VPulsePin,LOW);
-  delayMicroseconds(HV_TIME_US);          // 12Volt pulse for xx us
-  digitalWriteFast(Prog12VPulsePin,HIGH);
+  delay(1);                               // Target powerup stabilize time 
+  digitalWriteFast(Prog12VPulsePin,LOW);  // 12Volt pulse active
+  delayMicroseconds(HV_TIME_US);          // for xx us
+  digitalWriteFast(Prog12VPulsePin,HIGH); // Deactivate 12Volt pulse
   delayMicroseconds(5);                   // float for 5uS (datasheet 1..10us)
-  Event3.set_generator(gen3::pin_pb0);    // Set pin PB0 as event generator (TargetUpdiRxPin to PcRxPin)
-  Event3.set_user(user::evoutb_pin_pb2);  // Set EVOUTB as event user       (TX-Attiny to PC-RX)
-  Event3.start();  
-  digitalWriteFast(TargetUpdiTxPin,LOW);
-  digitalWriteFast(PcRxPin,LOW);
-  delayMicroseconds(BREAK_CHAR_TIME);     // Send handshake-break character
-  digitalWriteFast(TargetUpdiTxPin,HIGH);
-  digitalWriteFast(PcRxPin,HIGH);
+
+  ManualDrivePA2(false);                  // Low for break character to the target
+  ManualDrivePB2(false);                  // Low for break character to the PC 
+  delayMicroseconds(BREAK_CHAR_TIME);     // handshake-break timing
+  ManualDrivePA2(true);                   // End of break character
+  ManualDrivePB2(true); 
+  delayMicroseconds(50);
   SetChannel(UPDI_CHANNEL);               // Hardware takes over, to follow the characters from the PC
 }
 
@@ -113,59 +191,59 @@ ISR(PORTA_PORT_vect)
   {  
     unsigned int PulsTime = micros(); // 6uS @20MHz
   
-    if(digitalReadFast(PIN_PA1) == LOW)
-    { // Falling edge
+    if(digitalReadFast(PIN_PA1) == HIGH) // Let op pin is geinverteerd, daarom op HIGH controleren, echte signaal is LOW
+    { // Falling edge 
       PulsStart = PulsTime;
       FallingEdge = true;
     }
     else
     { // Rising edge   
       PulsWidth = PulsTime - PulsStart;
-      if((PulsWidth > 65) && (PulsWidth < 200))
+    
+      if((PulsWidth > 65) && (PulsWidth < 200)) // 20 ticks = ~64 uS, 63 ticks = ~201 uS
       { // Break at 115200 or 57600 baud detected
         CatchFirstBreak = false;              // Break detected, now setup for the 12Volt sequence
-        SetChannel(NO_TARGET_CHANNEL);        // No hardware feed through of signals
-        digitalWriteFast(TargetRxPin,LOW);    // Set outputpins to 0 Volt, so it cannot supply the target
-        digitalWriteFast(TargetUpdiTxPin,LOW);
-        POWER_OFF();                          // Power off the target
+        SetChannel(NO_TARGET_CHANNEL);        // No hardware feedthrough of signals
         DoHvSequenceFlag = true;              // Flag todo the 12Volt sequence in the mainloop
       }
     }
   }
   else
   {
-    if(digitalReadFast(PIN_PA1) == LOW)
+    if(digitalReadFast(PIN_PA1) == HIGH) // Let op pin is geinverteerd, daarom op HIGH controleren, echte signaal is LOW
     { // Falling edge
       FallingEdge = true;
     }     
   }
-  PORTA.INTFLAGS = 0x02; // Reset PA1 interrupt
+  PORTA.INTFLAGS = PORT_INT1_bm; // Reset PA1 interrupt
 }
   
 void SetChannel(byte Channel)
 {
   if(Channel != NO_TARGET_CHANNEL)
   {
+    Event3.stop();// Eerst Event3 netjes even stoppen voordat we de generator ompluggen
     if(Channel == UPDI_CHANNEL)
     { 
       Logic::stop();                              // Stop output of logic block     (TargetRxPin     HIGH level)                          
-      Event2.set_user(user::evouta_pin_pa2);      // Set EVOUTA as event user       (TargetUpdiTxPin follow input)
+      Event2.set_user(user::evouta_pin_pa2);      // Set EVOUTA as event user       (TargetUpdiTxPin follow input) 
+      Event2.start(); 
       Event3.set_generator(gen3::pin_pb0);        // Set pin PB0 as event generator (TargetUpdiRxPin to PcRxPin)
     }
     else
     { // UART_CHANNEL
       Logic::start();                             // Start output PA4               (TargetRxPin     follow input) 
-      Event2.clear_user(user::evouta_pin_pa2);    // Stop EVOUTA as event user      (TargetUpdiTxPin HIGH level) 
+      Event2.stop();                              // Stop EVOUTA as event user      (TargetUpdiTxPin HIGH level)  
       Event3.set_generator(gen3::pin_pb1);        // Set pin PB1 as event generator (TargetTxPin     to PcRxPin)
     }
-    Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user       (TX-Attiny to PC-RX)
+    Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user       (TX-Attiny to PC-RX) 
     Event3.start(); 
   }
   else
   { // No data to the Target and PC
-    Logic::stop();                                // Stop output PA4                (TargetRxPin     HIGH level)                          
-    Event2.clear_user(user::evouta_pin_pa2);      // Stop EVOUTA as event user      (TargetUpdiTxPin HIGH level) 
-    Event3.clear_user(user::evoutb_pin_pb2);      // Stop EVOUTB as event user      (TX-Attiny       HIGH level) 
+    Logic::stop(); // uitgang Pa4 is nu hoog (TargetRxPin     HIGH level) 
+    Event2.stop(); // uitgang Pa2 is nu hoog (TargetUpdiTxPin HIGH level) 
+    Event3.stop(); // uitgang Pb2 is nu hoog (PC_RX           HIGH level)
   }
   TargetChannel = Channel;   
 }
@@ -176,12 +254,15 @@ void ActivatePA1Interrupt(bool activate)
   if(activate == true)
   {
     SetChannel(NO_TARGET_CHANNEL);// No data from PC to the target
-    PORTA.PIN1CTRL  = 0b00001001; // PULLUPEN=1, 1 = both edges, 2 = rising, 3 = falling
+
+    // Inversie AAN + Pull-up AAN + Interrupt op BOTHEDGES
+    PORTA.PIN1CTRL = PORT_INVEN_bm | PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
     CatchFirstBreak = true;    
   }
   else
   {
-    PORTA.PIN1CTRL  = 0b00001000; // No interrupts
+    // Inversie AAN + Pull-up AAN + Interrupt UIT (DISABLED)
+    PORTA.PIN1CTRL = PORT_INVEN_bm | PORT_PULLUPEN_bm | PORT_ISC_INTDISABLE_gc;
     CatchFirstBreak = false;      
   }
 }
@@ -211,7 +292,7 @@ void LedStatus(byte Mode)
   static uint16_t LedSequence_2      = 0b0000000000000101; // 2 flashes per cycle 
   static uint16_t LedSequence_3      = 0b0000000000010101; // 3 flashes per cycle
   static uint16_t LedSequence_undef  = 0b0101010101010101; // flashes all the time 
-  static uint16_t Mask = 1;
+  static uint16_t Mask = 0x0001;
 
   Mask <<= 1;
   if (Mask >= 0x1000)
@@ -263,14 +344,18 @@ byte CheckDtrPin(bool DtrReRead)
   else
   {
     if(DTRpinValue != DtrPinPrev)
-    {
-      delay(2); // skip glitches
-      DTRpinValue = digitalReadFast(DtrPin);
-      if(DTRpinValue != DtrPinPrev)
+    {   
+      if(DTRpinValue == false) // Falling edge
       {
-        DtrPinPrev = DTRpinValue;
-        RetVal     = CHANGED;
-      } 
+        int LowCounter = 0;
+        while(LowCounter < 1200 && DTRpinValue == false ){ // Check for a short low pulse ( < 30ms )
+          DTRpinValue = digitalReadFast(DtrPin);
+          LowCounter++;
+          delayMicroseconds(25);        
+        }
+      }
+      DtrPinPrev = DTRpinValue;
+      RetVal     = CHANGED;  
     }
   }
   if(DTRpinValue == true)
@@ -280,52 +365,50 @@ byte CheckDtrPin(bool DtrReRead)
   return RetVal;   
 }
 
-void DoTargetReset(bool ShortLong)
-{
-  SetChannel(NO_TARGET_CHANNEL);
-  digitalWriteFast(TargetRxPin,LOW);    // Set outputpins to 0 Volt, so it cannot supply the target
-  digitalWriteFast(TargetUpdiTxPin,LOW);
-  
-  POWER_OFF();
-  if(ShortLong == LONG_RESET)
-  {
-    delay(RESET_TIME_LONG_MS); 
-  }
-  else
-  {
-    delay(RESET_TIME_SHORT_MS);
-  }
-  POWER_ON();
-  digitalWriteFast(TargetRxPin,HIGH);     // Set outputpin to high level 
-  digitalWriteFast(TargetUpdiTxPin,HIGH); 
-  if(ShortLong == LONG_RESET)
-  {
-    SetChannel(UART_CHANNEL); 
-  }   
-}
 
 void setup() {
   delay(500);
-  // ---EVENTS---
-  Event2.set_generator(gen2::pin_pa1);          // Set pin PA1(PcTxPin) as event generator (PC-TX to RX-Attiny)
-  Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user (TX-Attiny to PC-RX)
+
+  pinMode(PcTxPin,         INPUT);  // PA1 input logic block
+  pinMode(TargetRxPin,     OUTPUT); // PA4 output logic block
+
+  pinMode(TargetUpdiTxPin, OUTPUT); // PA2 output event 2
+
+  pinMode(TargetUpdiRxPin, INPUT_PULLUP);  // PB0 input event 3
+  pinMode(TargetTxPin,     INPUT_PULLUP);  // PB1 input event 3
+  pinMode(PcRxPin,         OUTPUT); // PB2 output event 3
+
+  pinMode(LED,             OUTPUT); // PIN_PA7
+
+  PORTA.PIN1CTRL |= PORT_INVEN_bm;  // Inverteer de PC-TX ingang
+  PORTA.PIN2CTRL |= PORT_INVEN_bm;  // Inverteer de TargetUpdiTxPin uitgang
+  PORTA.PIN4CTRL |= PORT_INVEN_bm;  // Inverteer de TargetRxPin uitgang
+
+  PORTB.PIN0CTRL |= PORT_INVEN_bm;  // Inverteer de TargetUpdiRxPin ingang
+  PORTB.PIN1CTRL |= PORT_INVEN_bm;  // Inverteer de TargetTxPin ingang
+  PORTB.PIN2CTRL |= PORT_INVEN_bm;  // Inverteer de PcRxPin uitgang
+
+  // Initialisatie van Logic0 (CCL LUT0) voor PA4 -> volgt PA1
+  Logic0.enable = true;                         
+  Logic0.input0 = in::unused;   
+  Logic0.input1 = in::input;        // Set PA1 (LUT0 IN1) als input (PC-TX)
+  Logic0.input2 = in::unused;    
+  Logic0.output = out::enable;      // Stuur PA4 aan (Target RX)                 
+  Logic0.truth  = 0xCC;             // Waarheidstabel om input1 te volgen                          
+  Logic0.init();                              
+
+  // --- EVENT SYSTEM INITIALISATIE ---
+  Event2.set_generator(gen2::pin_pa1);          // Set pin PA1(PcTxPin) as event generator (PC-TX to RX-Attiny)  
+  Event2.set_user(user::evouta_pin_pa2);        // PA2 is UDPI output
+  Event3.set_generator(gen3::pin_pb0);          // PB0 isUDPI output to PC
+  Event3.set_user(user::evoutb_pin_pb2);        // Set EVOUTB as event user       (TX-Attiny to PC-RX)    
 
   SetChannel(NO_TARGET_CHANNEL);
-    
-  Event2.start();                               // Start the event channel2 once
-
-  // ---LOGIC---                                // Initialize logic block 0
-  Logic0.enable = true;                         // Enable logic block 0
-  Logic0.input0 = in::unused;                   // don't use input PA0
-  Logic0.input1 = in::input;                    // Set PA1 as input
-  Logic0.input2 = in::unused;                   // don't use input PA2
-  Logic0.output = out::enable;                  // Enable logic block 0 output pin (PA4)
-  Logic0.truth = 0xCC;                          // Set truth table, just follow PA1
-  Logic0.init();                                // Set the settings
-
-  //Logic::start();                             // not yet start the output
 
   pinConfigure(ModePin, PIN_DIR_INPUT);
+  // Pro-tip voor ATtiny: Schakel de digitale ingangsbuffer uit voor A6.
+  // Dit voorkomt dat de CCL of digitale logica stoort op je analoge meting!
+  PORTA.PIN6CTRL = PORT_ISC_INPUT_DISABLE_gc;
   pinConfigure(DtrPin,  PIN_PULLUP);
   pinConfigure(LED,     PIN_DIR_OUTPUT);
   
@@ -335,18 +418,6 @@ void setup() {
   pinConfigure(PowerOutPin,PIN_DIR_OUTPUT);
   POWER_ON();
 
-  pinConfigure(TargetUpdiRxPin, PIN_PULLUP);
-  pinConfigure(TargetTxPin, PIN_PULLUP);
-        
-  digitalWriteFast(TargetUpdiTxPin,HIGH);
-  pinConfigure(TargetUpdiTxPin,PIN_DIR_OUTPUT); // Active drive pin high, also after reconnecting an event / logicblock
-           
-  digitalWriteFast(TargetRxPin,HIGH);
-  pinConfigure(TargetRxPin,PIN_DIR_OUTPUT);     // Active drive pin high, also after reconnecting an event / logicblock
-                 
-  digitalWriteFast(PcRxPin,HIGH);
-  pinConfigure(PcRxPin,PIN_DIR_OUTPUT);         // Active drive pin high, also after reconnecting an event / logicblock
- 
   ActivatePA1Interrupt(false);
 }
 
@@ -356,22 +427,30 @@ void loop()
   static byte ModePrev  = MODE_UNDEFINED;
   static unsigned long PrevEdgeMs = millis();
   
-  byte DtrPinChange; 
+  byte DtrPinChange = 0; 
   byte Mode = ReadMode();
+  byte Count = 0;
 
-  if(Mode != ModePrev)
-  {
-    delay(XMS); // skip glitches
-    Mode = ReadMode();
+  if(DoHvSequenceFlag == false){
     if(Mode != ModePrev)
     {
-      ModePrev     = Mode;
-      DtrPinChange = CheckDtrPin(true); // Refresh the DTR pin status
+      delay(XMS); // skip glitches
+      Mode = ReadMode();
+      if(Mode != ModePrev)
+      {
+        ModePrev     = Mode;
+        DtrPinChange = CheckDtrPin(true); // Refresh the DTR pin status
+      }
+      delay(XMS);
     }
-  }
-  else
-  {
-    DtrPinChange = CheckDtrPin(false);
+    else
+    { // Sample every 1ms the DTR line till XMS or a change is detected
+      while((Count < XMS) && ((DtrPinChange & CHANGED) == 0) && (DoHvSequenceFlag == false)){
+        DtrPinChange = CheckDtrPin(false);
+        Count++;
+        if((DtrPinChange & CHANGED) == 0) delay(1);
+      }
+    }
   }
   
   switch(Mode)
@@ -473,5 +552,4 @@ void loop()
     Prescaler = 175/XMS;
     LedStatus(Mode);
   }
-  delay(XMS);
 }
